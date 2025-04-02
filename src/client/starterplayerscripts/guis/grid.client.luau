@@ -35,9 +35,6 @@ local function setupClickDetection()
         local cameraPosition = boardCenter + Vector3.new(0, distance, 0)
         camera.CFrame = CFrame.new(cameraPosition, boardCenter)
         camera.Focus = CFrame.new(boardCenter)
-        
-        print("Camera positioned at center of board:", boardCenter)
-        print("Using FOV:", camera.FieldOfView)
     end
 
     
@@ -75,10 +72,10 @@ local function setupClickDetection()
     end
 end
 
--- Set up click detection when the character is added
-player.CharacterAdded:Connect(setupClickDetection)
+-- -- Set up click detection when the character is added
+-- player.CharacterAdded:Connect(setupClickDetection)
 
--- If the character already exists, set up click detection now
-if player.Character then
-    setupClickDetection()
-end
+-- -- If the character already exists, set up click detection now
+-- if player.Character then
+--     setupClickDetection()
+-- end

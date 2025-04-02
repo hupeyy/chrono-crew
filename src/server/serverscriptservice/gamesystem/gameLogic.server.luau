@@ -5,16 +5,16 @@ local humanoid = bot:WaitForChild("Humanoid")
 local rootPart = humanoid.RootPart
 
 local grid = Workspace:WaitForChild("GameBoard")
-local gridSize = grid:GetAttribute("GridSize") or 4
+local cellSize = grid:GetAttribute("CellSize") or 4
 
 
 local gridClickEvent = ReplicatedStorage:WaitForChild("GridClickEvent")
 
 function moveToGridPosition(position: Vector3)
     local gridPosition = Vector3.new(
-        math.floor(position.X / gridSize + 0.5) * gridSize, -- Added +0.5 for proper rounding
+        math.floor(position.X / cellSize + 0.5) * cellSize, -- Added +0.5 for proper rounding
         position.Y,
-        math.floor(position.Z / gridSize + 0.5) * gridSize  -- Added +0.5 for proper rounding
+        math.floor(position.Z / cellSize + 0.5) * cellSize  -- Added +0.5 for proper rounding
     )
     return gridPosition
 end
@@ -27,7 +27,7 @@ function walkPath(path: {Vector3})
         -- print("Moving to grid position: " .. tostring(targetPosition))
         
         -- Create a proximity check
-        local proximityThreshold = gridSize * 0.1 -- 10% of grid size
+        local proximityThreshold = cellSize * 0.1 -- 10% of grid size
         local reachedDestination = false
         
         -- Use both MoveTo and MoveToFinished for more reliable movement

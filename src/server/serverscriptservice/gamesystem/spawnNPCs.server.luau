@@ -3,7 +3,7 @@ local NPC = ReplicatedStorage:WaitForChild("NPC")
 local GameBoard = workspace:WaitForChild("GameBoard")
 
 
-local function spawnNPCAtCell(cellPart)
+local function spawnNPCAtCell(cellPart: Part)
     if cellPart and cellPart:IsA("BasePart") then
         local npcClone = NPC:Clone()
         npcClone.Parent = workspace
