@@ -54,6 +54,7 @@ local function createUserSpawnPoint(board: Model, cellSize: number, row: number,
     spawnPoint.Transparency = 1 -- Make it invisible
     spawnPoint.CanCollide = false -- Prevent collisions
     spawnPoint.CFrame = CFrame.new(spawnPoint.Position) * CFrame.Angles(0, math.rad(-90), 0) -- Rotate spawn point
+    spawnPoint.Enabled = false
     spawnPoint.Name = "SpawnPoint"
     spawnPoint.Parent = board
 end
