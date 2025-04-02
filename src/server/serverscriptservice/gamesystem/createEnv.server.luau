@@ -8,7 +8,7 @@ local cellClickEvent = Instance.new("RemoteEvent")
 cellClickEvent.Name = "CellClickEvent"
 cellClickEvent.Parent = ReplicatedStorage
 
-local function createBoard(rows: number, cols: number, cellSize: number, cellHeight: number)
+local function createBoard(rows: number, cols: number, cellSize: number, cellHeight: number, offsetX: number, offsetZ: number)
     local board = Instance.new("Model")
     board.Name = "GameBoard"
     board.Parent = Workspace
@@ -17,7 +17,7 @@ local function createBoard(rows: number, cols: number, cellSize: number, cellHei
         for col = 1, cols do
             local cell = Instance.new("Part")
             cell.Size = Vector3.new(cellSize, cellHeight, cellSize)
-            cell.Position = Vector3.new((col - 1) * cellSize, cellHeight / 2, (row - 1) * cellSize)
+            cell.Position = Vector3.new((col - 1) * cellSize + offsetX, cellHeight / 2, (row - 1) * cellSize + offsetZ)
             cell.Anchored = true
             cell.Material = Enum.Material.SmoothPlastic
             cell.Parent = board
@@ -53,9 +53,9 @@ local function createUserSpawnPoint(board: Model, cellSize: number, row: number,
     spawnPoint.Anchored = true
     spawnPoint.Transparency = 1 -- Make it invisible
     spawnPoint.CanCollide = false -- Prevent collisions
-    spawnPoint.Parent = board
     spawnPoint.CFrame = CFrame.new(spawnPoint.Position) * CFrame.Angles(0, math.rad(-90), 0) -- Rotate spawn point
     spawnPoint.Name = "SpawnPoint"
+    spawnPoint.Parent = board
 end
 
 -- Lobby entry point creation
@@ -67,9 +67,8 @@ local function createLobbyEntryPoint(board: Model, rows: number, cols: number, c
     lobbyEntry.Anchored = true
     lobbyEntry.Material = Enum.Material.SmoothPlastic
     lobbyEntry.BrickColor = BrickColor.new("Bright red")
-    lobbyEntry.Parent = board
     lobbyEntry.Name = "LobbyEntryPoint"
-
+    lobbyEntry.Parent = board
 end
 
 
@@ -96,14 +95,11 @@ local cols = 8 -- Number of columns
 local cellSize = 4 -- Size of each cell
 local cellHeight = .5 -- Height of each cell
 
--- Create the environment
-local gameBoard = createBoard(rows, cols, cellSize, cellHeight)
-local spawnPoint = createUserSpawnPoint(gameBoard, cellSize, 1, 1) -- Spawn at Cell_1_1
-local lobbyEntryPoint = createLobbyEntryPoint(gameBoard, rows, cols, cellSize, cellHeight)
-
--- Set attributes for the game board
-gameBoard.Parent = Workspace
-gameBoard:SetAttribute("Rows", rows)
-gameBoard:SetAttribute("Cols", cols)
-gameBoard:SetAttribute("CellSize", cellSize)
-print("Game board created with " .. rows .. " rows and " .. cols .. " columns.")
+for i = 1, 3 do
+    -- Create 3 boards
+    local offsetX = 0 -- No offset in X direction
+    local offsetZ = (i - 1) * (cols * cellSize + 10) -- Offset for each board
+    local board = createBoard(rows, cols, cellSize, cellHeight, offsetX, offsetZ)
+    createUserSpawnPoint(board, cellSize, 1, 1) -- Spawn point at (1, 1)
+    createLobbyEntryPoint(board, rows, cols, cellSize, cellHeight) -- Lobby entry point
+end
