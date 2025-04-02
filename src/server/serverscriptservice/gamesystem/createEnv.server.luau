@@ -8,7 +8,7 @@ local cellClickEvent = Instance.new("RemoteEvent")
 cellClickEvent.Name = "CellClickEvent"
 cellClickEvent.Parent = ReplicatedStorage
 
-local function createBoard(rows, cols, cellSize)
+local function createBoard(rows: number, cols: number, cellSize: number, cellHeight: number)
     local board = Instance.new("Model")
     board.Name = "GameBoard"
     board.Parent = Workspace
@@ -16,8 +16,8 @@ local function createBoard(rows, cols, cellSize)
     for row = 1, rows do
         for col = 1, cols do
             local cell = Instance.new("Part")
-            cell.Size = Vector3.new(cellSize, .5, cellSize)
-            cell.Position = Vector3.new((col - 1) * cellSize, .5, (row - 1) * cellSize)
+            cell.Size = Vector3.new(cellSize, cellHeight, cellSize)
+            cell.Position = Vector3.new((col - 1) * cellSize, cellHeight / 2, (row - 1) * cellSize)
             cell.Anchored = true
             cell.Material = Enum.Material.SmoothPlastic
             cell.Parent = board
@@ -46,10 +46,10 @@ local function createBoard(rows, cols, cellSize)
 end
 
 -- Spawn point creation
-local function createSpawnPoint(board: Model, cellSize: number)
+local function createUserSpawnPoint(board: Model, cellSize: number, row: number, col: number)
     local spawnPoint = Instance.new("SpawnLocation")
     spawnPoint.Size = Vector3.new(cellSize, 1, cellSize)
-    spawnPoint.Position = board:WaitForChild("Cell_1_1").Position + Vector3.new(0, 2, 0) -- Adjust Y position as needed
+    spawnPoint.Position = board:WaitForChild("Cell_" .. row .. "_" .. col).Position + Vector3.new(0, 2, 0)
     spawnPoint.Anchored = true
     spawnPoint.Transparency = 1 -- Make it invisible
     spawnPoint.CanCollide = false -- Prevent collisions
@@ -59,10 +59,11 @@ local function createSpawnPoint(board: Model, cellSize: number)
 end
 
 -- Lobby entry point creation
-local function createLobbyEntryPoint(board: Model, rows: number, cols: number, cellSize: number)
+local function createLobbyEntryPoint(board: Model, rows: number, cols: number, cellSize: number, height: number)
     local lobbyEntry = Instance.new("Part")
-    lobbyEntry.Size = Vector3.new(2, .5, 4)
-    lobbyEntry.Position = board:GetPivot().Position + Vector3.new(-1 * cols, 0, 0) -- Adjust Y position as needed
+    lobbyEntry.Size = Vector3.new(2, height, 4)
+
+    lobbyEntry.Position = board:GetPivot().Position + Vector3.new(-1 * (cols * cellSize / 2 + 1), -board:GetPivot().Position.Y + (height / 2), 0)
     lobbyEntry.Anchored = true
     lobbyEntry.Material = Enum.Material.SmoothPlastic
     lobbyEntry.BrickColor = BrickColor.new("Bright red")
@@ -93,11 +94,12 @@ end)
 local rows = 8 -- Number of rows
 local cols = 8 -- Number of columns
 local cellSize = 4 -- Size of each cell
+local cellHeight = .5 -- Height of each cell
 
 -- Create the environment
-local gameBoard = createBoard(rows, cols, cellSize)
-local spawnPoint = createSpawnPoint(gameBoard, cellSize)
-local lobbyEntryPoint = createLobbyEntryPoint(gameBoard, rows, cols, cellSize)
+local gameBoard = createBoard(rows, cols, cellSize, cellHeight)
+local spawnPoint = createUserSpawnPoint(gameBoard, cellSize, 1, 1) -- Spawn at Cell_1_1
+local lobbyEntryPoint = createLobbyEntryPoint(gameBoard, rows, cols, cellSize, cellHeight)
 
 -- Set attributes for the game board
 gameBoard.Parent = Workspace
