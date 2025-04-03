@@ -8,16 +8,36 @@ local cellClickEvent = Instance.new("RemoteEvent")
 cellClickEvent.Name = "CellClickEvent"
 cellClickEvent.Parent = ReplicatedStorage
 
-local function createBoard(rows: number, cols: number, cellSize: number, cellHeight: number, offsetX: number, offsetZ: number)
+local function createBoard(i: number, rows: number, cols: number, cellSize: number, cellHeight: number, offsetX: number, offsetZ: number, rotation: number)
     local board = Instance.new("Model")
-    board.Name = "GameBoard"
+    board.Name = string.format("GameBoard_%d", i)
     board.Parent = Workspace
+
+    -- Calculate the center position of the board
+    local centerX = offsetX + (cols * cellSize) / 2 - cellSize / 2
+    local centerZ = offsetZ + (rows * cellSize) / 2 - cellSize / 2
+    local centerY = cellHeight / 2
+    
+    -- Create a CFrame with the desired rotation
+    local boardCFrame = CFrame.new(centerX, centerY, centerZ) * CFrame.Angles(0, math.rad(rotation), 0)
 
     for row = 1, rows do
         for col = 1, cols do
             local cell = Instance.new("Part")
             cell.Size = Vector3.new(cellSize, cellHeight, cellSize)
-            cell.Position = Vector3.new((col - 1) * cellSize + offsetX, cellHeight / 2, (row - 1) * cellSize + offsetZ)
+            
+            -- Calculate the local position relative to the board's center
+            local localX = (col - 1) * cellSize - (cols * cellSize) / 2 + cellSize / 2
+            local localZ = (row - 1) * cellSize - (rows * cellSize) / 2 + cellSize / 2
+            local localPos = Vector3.new(localX, 0, localZ)
+            
+            -- Transform the local position using the board's CFrame
+            local worldPos = boardCFrame * localPos
+            cell.Position = worldPos
+            
+            -- Set the cell's orientation to match the board
+            cell.CFrame = CFrame.new(worldPos) * CFrame.Angles(0, math.rad(rotation), 0)
+            
             cell.Anchored = true
             cell.Material = Enum.Material.SmoothPlastic
             cell.Parent = board
@@ -42,8 +62,12 @@ local function createBoard(rows: number, cols: number, cellSize: number, cellHei
         end
     end
 
+    -- Store the board's CFrame as an attribute for later reference
+    board:SetAttribute("BoardCFrame", boardCFrame)
+
     return board
 end
+
 
 -- Spawn point creation
 local function createUserSpawnPoint(board: Model, cellSize: number, row: number, col: number)
@@ -62,15 +86,39 @@ end
 -- Lobby entry point creation
 local function createLobbyEntryPoint(board: Model, rows: number, cols: number, cellSize: number, height: number)
     local lobbyEntry = Instance.new("Part")
-    lobbyEntry.Size = Vector3.new(2, height, 4)
-
-    lobbyEntry.Position = board:GetPivot().Position + Vector3.new(-1 * (cols * cellSize / 2 + 1), -board:GetPivot().Position.Y + (height / 2), 0)
+    local cellHeight = .5
+    local length = 4
+    local width = 2
+    lobbyEntry.Size = Vector3.new(width, height, length)
+    
+    -- Get the board's CFrame
+    local boardCFrame = board:GetAttribute("BoardCFrame")
+    
+    -- Find the first row's center position
+    local firstRowCenterCol = (cols + 1) / 2
+    local firstRowCell = board:FindFirstChild("Cell_" .. math.floor(firstRowCenterCol) .. "_1")
+    
+    if firstRowCell then
+        -- Position the lobby entry point next to the first row
+        -- Calculate the position in local board space
+        local localX = -1 * (cols * cellSize / 2) - (width / 2) -- Position it outside the board
+        local localZ = 0 -- Center it along the Z axis of the board
+        local localY = height / 2 - cellHeight / 2 -- Position it at the right height
+        
+        -- Transform to world space using the board's CFrame
+        lobbyEntry.CFrame = boardCFrame * CFrame.new(localX, localY, localZ)
+    else
+        -- Fallback if cell not found
+        lobbyEntry.Position = board:GetPivot().Position + Vector3.new(-1 * (cols * cellSize / 2 + 3), height/2, 0)
+    end
+    
     lobbyEntry.Anchored = true
     lobbyEntry.Material = Enum.Material.SmoothPlastic
     lobbyEntry.BrickColor = BrickColor.new("Bright red")
     lobbyEntry.Name = "LobbyEntryPoint"
     lobbyEntry.Parent = board
 end
+
 
 
 -- Handle cell clicks from clients
@@ -96,11 +144,22 @@ local cols = 8 -- Number of columns
 local cellSize = 4 -- Size of each cell
 local cellHeight = .5 -- Height of each cell
 
-for i = 1, 3 do
+for i = 1, 6 do
     -- Create 3 boards
+    local spacingX = 2
+    local spacingZ = 20
     local offsetX = 0 -- No offset in X direction
-    local offsetZ = (i - 1) * (cols * cellSize + 10) -- Offset for each board
-    local board = createBoard(rows, cols, cellSize, cellHeight, offsetX, offsetZ)
+    local offsetZ = (i - 1) * (cols * cellSize + spacingZ) -- Offset for each board
+    local rotation = 0 -- No rotation
+
+
+    if i > 3 then
+        offsetZ = (i - 4) * (cols * cellSize + spacingZ) -- Offset for the second set of boards
+        offsetX = -spacingX * rows * cellSize -- Offset in X direction for the second set of boards
+        rotation = 180 -- Rotate the second set of boards
+    end
+
+    local board = createBoard(i, rows, cols, cellSize, cellHeight, offsetX, offsetZ, rotation)
     createUserSpawnPoint(board, cellSize, 1, 1) -- Spawn point at (1, 1)
     createLobbyEntryPoint(board, rows, cols, cellSize, cellHeight) -- Lobby entry point
 end
