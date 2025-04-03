@@ -68,16 +68,16 @@ local function createBoard(i: number, rows: number, cols: number, cellSize: numb
     return board
 end
 
-
 -- Spawn point creation
 local function createUserSpawnPoint(board: Model, cellSize: number, row: number, col: number)
     local spawnPoint = Instance.new("SpawnLocation")
+    local rotation = -90
     spawnPoint.Size = Vector3.new(cellSize, 1, cellSize)
     spawnPoint.Position = board:WaitForChild("Cell_" .. row .. "_" .. col).Position + Vector3.new(0, 2, 0)
     spawnPoint.Anchored = true
     spawnPoint.Transparency = 1 -- Make it invisible
     spawnPoint.CanCollide = false -- Prevent collisions
-    spawnPoint.CFrame = CFrame.new(spawnPoint.Position) * CFrame.Angles(0, math.rad(-90), 0) -- Rotate spawn point
+    spawnPoint.CFrame = CFrame.new(spawnPoint.Position) * CFrame.Angles(0, math.rad(rotation), 0) -- Rotate spawn point
     spawnPoint.Enabled = false
     spawnPoint.Name = "SpawnPoint"
     spawnPoint.Parent = board
@@ -117,6 +117,19 @@ local function createLobbyEntryPoint(board: Model, rows: number, cols: number, c
     lobbyEntry.BrickColor = BrickColor.new("Bright red")
     lobbyEntry.Name = "LobbyEntryPoint"
     lobbyEntry.Parent = board
+
+
+    -- Spawn a player to spawn point on touch
+    lobbyEntry.Touched:Connect(function(hit)
+        local player = game.Players:GetPlayerFromCharacter(hit.Parent)
+        if player then
+            -- Teleport the player to the spawn point
+            local spawnPoint = board:FindFirstChild("SpawnPoint")
+            if spawnPoint then
+                player.Character.PrimaryPart.CFrame = spawnPoint.CFrame
+            end
+        end
+    end)
 end
 
 
